@@ -1,0 +1,15 @@
+{
+	"$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"value": "adf-bankaml-dev"
+		},
+		"ls_azure_kv_properties_typeProperties_baseUrl": {
+			"value": "https://kv-bankaml-dev.vault.azure.net/"
+		},
+		"ls_databricks_notebook_properties_typeProperties_existingClusterId": {
+			"value": "0823-080649-tf43cvbs"
+		}
+	}
+}

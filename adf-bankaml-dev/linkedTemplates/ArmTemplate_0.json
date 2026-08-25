@@ -1,0 +1,504 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Data Factory name",
+			"defaultValue": "adf-bankaml-dev"
+		},
+		"ls_azure_kv_properties_typeProperties_baseUrl": {
+			"type": "string",
+			"defaultValue": "https://kv-bankaml-dev.vault.azure.net/"
+		},
+		"ls_databricks_notebook_properties_typeProperties_existingClusterId": {
+			"type": "string",
+			"defaultValue": "0823-080649-tf43cvbs"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "[concat(parameters('factoryName'), '/ls_azure_kv')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureKeyVault",
+				"typeProperties": {
+					"baseUrl": "[parameters('ls_azure_kv_properties_typeProperties_baseUrl')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ls_databricks_notebook')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureDatabricks",
+				"typeProperties": {
+					"domain": "https://adb-7405608068432603.3.azuredatabricks.net",
+					"accessToken": {
+						"type": "AzureKeyVaultSecret",
+						"store": {
+							"referenceName": "ls_azure_kv",
+							"type": "LinkedServiceReference"
+						},
+						"secretName": "databricks-access-token",
+						"secretVersion": "7dbd858a5c4b4882947152d98178e06b"
+					},
+					"existingClusterId": "[parameters('ls_databricks_notebook_properties_typeProperties_existingClusterId')]"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_azure_kv')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/pl_bronze')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "Data ingestion from the landing layer into Bronze-layer Delta tables.",
+				"activities": [
+					{
+						"name": "bronze_branches",
+						"type": "DatabricksNotebook",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"notebookPath": "/Users/jeevan.azureacc3@gmail.com/bankaml-de-project/notebooks/01_bronze/bronze_branches"
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_databricks_notebook",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "bronze_customers",
+						"type": "DatabricksNotebook",
+						"dependsOn": [
+							{
+								"activity": "bronze_branches",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"notebookPath": "/Users/jeevan.azureacc3@gmail.com/bankaml-de-project/notebooks/01_bronze/bronze_customers"
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_databricks_notebook",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "bronze_transactions",
+						"type": "DatabricksNotebook",
+						"dependsOn": [
+							{
+								"activity": "bronze_accounts",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"notebookPath": "/Users/jeevan.azureacc3@gmail.com/bankaml-de-project/notebooks/01_bronze/bronze_transactions"
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_databricks_notebook",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "bronze_accounts",
+						"type": "DatabricksNotebook",
+						"dependsOn": [
+							{
+								"activity": "bronze_customers",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"notebookPath": "/Users/jeevan.azureacc3@gmail.com/bankaml-de-project/notebooks/01_bronze/bronze_accounts"
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_databricks_notebook",
+							"type": "LinkedServiceReference"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": [],
+				"lastPublishTime": "2026-08-25T18:21:31Z"
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_databricks_notebook')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/pl_gold')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "Data ingestion from the Silver-layer Delta tables into Gold-layer Delta tables.",
+				"activities": [
+					{
+						"name": "gold_structuring_detection",
+						"type": "DatabricksNotebook",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"notebookPath": "/Users/jeevan.azureacc3@gmail.com/bankaml-de-project/notebooks/03_gold/gold_structuring_detection"
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_databricks_notebook",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "gold_rapid_inout_detection",
+						"type": "DatabricksNotebook",
+						"dependsOn": [
+							{
+								"activity": "gold_structuring_detection",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"notebookPath": "/Users/jeevan.azureacc3@gmail.com/bankaml-de-project/notebooks/03_gold/gold_rapid_inout_detection"
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_databricks_notebook",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "gold_customer_risk_summary",
+						"type": "DatabricksNotebook",
+						"dependsOn": [
+							{
+								"activity": "gold_rapid_inout_detection",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"notebookPath": "/Users/jeevan.azureacc3@gmail.com/bankaml-de-project/notebooks/03_gold/gold_customer_risk_summary"
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_databricks_notebook",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "gold_account_daily_txn_summary",
+						"type": "DatabricksNotebook",
+						"dependsOn": [
+							{
+								"activity": "gold_customer_risk_summary",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"notebookPath": "/Users/jeevan.azureacc3@gmail.com/bankaml-de-project/notebooks/03_gold/gold_account_daily_txn_summary"
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_databricks_notebook",
+							"type": "LinkedServiceReference"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": [],
+				"lastPublishTime": "2026-08-25T18:34:28Z"
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_databricks_notebook')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/pl_silver')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "Data ingestion from the Bronze-layer Delta tables into Silver-layer Delta tables.",
+				"activities": [
+					{
+						"name": "silver_branches",
+						"type": "DatabricksNotebook",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"notebookPath": "/Users/jeevan.azureacc3@gmail.com/bankaml-de-project/notebooks/02_silver/silver_branches"
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_databricks_notebook",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "silver_customers",
+						"type": "DatabricksNotebook",
+						"dependsOn": [
+							{
+								"activity": "silver_branches",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"notebookPath": "/Users/jeevan.azureacc3@gmail.com/bankaml-de-project/notebooks/02_silver/silver_customers"
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_databricks_notebook",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "silver_accounts",
+						"type": "DatabricksNotebook",
+						"dependsOn": [
+							{
+								"activity": "silver_customers",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"notebookPath": "/Users/jeevan.azureacc3@gmail.com/bankaml-de-project/notebooks/02_silver/silver_accounts"
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_databricks_notebook",
+							"type": "LinkedServiceReference"
+						}
+					},
+					{
+						"name": "silver_transactions",
+						"type": "DatabricksNotebook",
+						"dependsOn": [
+							{
+								"activity": "silver_accounts",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"notebookPath": "/Users/jeevan.azureacc3@gmail.com/bankaml-de-project/notebooks/02_silver/silver_transactions"
+						},
+						"linkedServiceName": {
+							"referenceName": "ls_databricks_notebook",
+							"type": "LinkedServiceReference"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": [],
+				"lastPublishTime": "2026-08-25T18:28:57Z"
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_databricks_notebook')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/pl_master')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "Orchestrates the Bronze, Silver, and Gold layer pipelines sequentially, ensuring each pipeline completes successfully before triggering the next layer.",
+				"activities": [
+					{
+						"name": "Execute pl_bronze",
+						"type": "ExecutePipeline",
+						"dependsOn": [],
+						"policy": {
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "pl_bronze",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {}
+						}
+					},
+					{
+						"name": "Execute pl_silver",
+						"type": "ExecutePipeline",
+						"dependsOn": [
+							{
+								"activity": "Execute pl_bronze",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "pl_silver",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {}
+						}
+					},
+					{
+						"name": "Execute pl_gold",
+						"type": "ExecutePipeline",
+						"dependsOn": [
+							{
+								"activity": "Execute pl_silver",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "pl_gold",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {}
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": [],
+				"lastPublishTime": "2026-08-25T18:39:12Z"
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/pipelines/pl_bronze')]",
+				"[concat(variables('factoryId'), '/pipelines/pl_silver')]",
+				"[concat(variables('factoryId'), '/pipelines/pl_gold')]"
+			]
+		}
+	]
+}
