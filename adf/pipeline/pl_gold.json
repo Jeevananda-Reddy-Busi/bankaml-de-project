@@ -1,0 +1,112 @@
+{
+	"name": "pl_gold",
+	"properties": {
+		"description": "Data ingestion from the Silver-layer Delta tables into Gold-layer Delta tables.",
+		"activities": [
+			{
+				"name": "gold_structuring_detection",
+				"type": "DatabricksNotebook",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"notebookPath": "/Users/jeevan.azureacc3@gmail.com/bankaml-de-project/notebooks/03_gold/gold_structuring_detection"
+				},
+				"linkedServiceName": {
+					"referenceName": "ls_databricks_notebook",
+					"type": "LinkedServiceReference"
+				}
+			},
+			{
+				"name": "gold_rapid_inout_detection",
+				"type": "DatabricksNotebook",
+				"dependsOn": [
+					{
+						"activity": "gold_structuring_detection",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"notebookPath": "/Users/jeevan.azureacc3@gmail.com/bankaml-de-project/notebooks/03_gold/gold_rapid_inout_detection"
+				},
+				"linkedServiceName": {
+					"referenceName": "ls_databricks_notebook",
+					"type": "LinkedServiceReference"
+				}
+			},
+			{
+				"name": "gold_customer_risk_summary",
+				"type": "DatabricksNotebook",
+				"dependsOn": [
+					{
+						"activity": "gold_rapid_inout_detection",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"notebookPath": "/Users/jeevan.azureacc3@gmail.com/bankaml-de-project/notebooks/03_gold/gold_customer_risk_summary"
+				},
+				"linkedServiceName": {
+					"referenceName": "ls_databricks_notebook",
+					"type": "LinkedServiceReference"
+				}
+			},
+			{
+				"name": "gold_account_daily_txn_summary",
+				"type": "DatabricksNotebook",
+				"dependsOn": [
+					{
+						"activity": "gold_customer_risk_summary",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"notebookPath": "/Users/jeevan.azureacc3@gmail.com/bankaml-de-project/notebooks/03_gold/gold_account_daily_txn_summary"
+				},
+				"linkedServiceName": {
+					"referenceName": "ls_databricks_notebook",
+					"type": "LinkedServiceReference"
+				}
+			}
+		],
+		"annotations": [],
+		"lastPublishTime": "2026-08-25T18:34:28Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

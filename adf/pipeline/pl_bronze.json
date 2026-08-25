@@ -1,0 +1,112 @@
+{
+	"name": "pl_bronze",
+	"properties": {
+		"description": "Data ingestion from the landing layer into Bronze-layer Delta tables.",
+		"activities": [
+			{
+				"name": "bronze_branches",
+				"type": "DatabricksNotebook",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"notebookPath": "/Users/jeevan.azureacc3@gmail.com/bankaml-de-project/notebooks/01_bronze/bronze_branches"
+				},
+				"linkedServiceName": {
+					"referenceName": "ls_databricks_notebook",
+					"type": "LinkedServiceReference"
+				}
+			},
+			{
+				"name": "bronze_customers",
+				"type": "DatabricksNotebook",
+				"dependsOn": [
+					{
+						"activity": "bronze_branches",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"notebookPath": "/Users/jeevan.azureacc3@gmail.com/bankaml-de-project/notebooks/01_bronze/bronze_customers"
+				},
+				"linkedServiceName": {
+					"referenceName": "ls_databricks_notebook",
+					"type": "LinkedServiceReference"
+				}
+			},
+			{
+				"name": "bronze_transactions",
+				"type": "DatabricksNotebook",
+				"dependsOn": [
+					{
+						"activity": "bronze_accounts",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"notebookPath": "/Users/jeevan.azureacc3@gmail.com/bankaml-de-project/notebooks/01_bronze/bronze_transactions"
+				},
+				"linkedServiceName": {
+					"referenceName": "ls_databricks_notebook",
+					"type": "LinkedServiceReference"
+				}
+			},
+			{
+				"name": "bronze_accounts",
+				"type": "DatabricksNotebook",
+				"dependsOn": [
+					{
+						"activity": "bronze_customers",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"notebookPath": "/Users/jeevan.azureacc3@gmail.com/bankaml-de-project/notebooks/01_bronze/bronze_accounts"
+				},
+				"linkedServiceName": {
+					"referenceName": "ls_databricks_notebook",
+					"type": "LinkedServiceReference"
+				}
+			}
+		],
+		"annotations": [],
+		"lastPublishTime": "2026-08-25T18:21:31Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

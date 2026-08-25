@@ -1,0 +1,112 @@
+{
+	"name": "pl_silver",
+	"properties": {
+		"description": "Data ingestion from the Bronze-layer Delta tables into Silver-layer Delta tables.",
+		"activities": [
+			{
+				"name": "silver_branches",
+				"type": "DatabricksNotebook",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"notebookPath": "/Users/jeevan.azureacc3@gmail.com/bankaml-de-project/notebooks/02_silver/silver_branches"
+				},
+				"linkedServiceName": {
+					"referenceName": "ls_databricks_notebook",
+					"type": "LinkedServiceReference"
+				}
+			},
+			{
+				"name": "silver_customers",
+				"type": "DatabricksNotebook",
+				"dependsOn": [
+					{
+						"activity": "silver_branches",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"notebookPath": "/Users/jeevan.azureacc3@gmail.com/bankaml-de-project/notebooks/02_silver/silver_customers"
+				},
+				"linkedServiceName": {
+					"referenceName": "ls_databricks_notebook",
+					"type": "LinkedServiceReference"
+				}
+			},
+			{
+				"name": "silver_accounts",
+				"type": "DatabricksNotebook",
+				"dependsOn": [
+					{
+						"activity": "silver_customers",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"notebookPath": "/Users/jeevan.azureacc3@gmail.com/bankaml-de-project/notebooks/02_silver/silver_accounts"
+				},
+				"linkedServiceName": {
+					"referenceName": "ls_databricks_notebook",
+					"type": "LinkedServiceReference"
+				}
+			},
+			{
+				"name": "silver_transactions",
+				"type": "DatabricksNotebook",
+				"dependsOn": [
+					{
+						"activity": "silver_accounts",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"notebookPath": "/Users/jeevan.azureacc3@gmail.com/bankaml-de-project/notebooks/02_silver/silver_transactions"
+				},
+				"linkedServiceName": {
+					"referenceName": "ls_databricks_notebook",
+					"type": "LinkedServiceReference"
+				}
+			}
+		],
+		"annotations": [],
+		"lastPublishTime": "2026-08-25T18:28:57Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

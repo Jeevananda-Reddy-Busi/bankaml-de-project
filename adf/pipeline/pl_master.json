@@ -1,0 +1,73 @@
+{
+	"name": "pl_master",
+	"properties": {
+		"description": "Orchestrates the Bronze, Silver, and Gold layer pipelines sequentially, ensuring each pipeline completes successfully before triggering the next layer.",
+		"activities": [
+			{
+				"name": "Execute pl_bronze",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_bronze",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "Execute pl_silver",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Execute pl_bronze",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_silver",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "Execute pl_gold",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "Execute pl_silver",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_gold",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			}
+		],
+		"annotations": [],
+		"lastPublishTime": "2026-08-25T18:39:12Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

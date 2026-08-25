@@ -1,0 +1,15 @@
+{
+	"name": "adf-bankaml-dev",
+	"properties": {
+		"trustModeClaimForMi": {
+			"value": "Disabled",
+			"editable": true
+		}
+	},
+	"location": "australiaeast",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "20d54af0-d3bb-477d-8b4a-936ed4aafef1",
+		"tenantId": "4b10a0da-e206-497c-83f0-10d2c43455b3"
+	}
+}
