@@ -1,0 +1,20 @@
+{
+	"name": "structuring_flags_table_creation",
+	"properties": {
+		"folder": {
+			"name": "01_external_tables_gold"
+		},
+		"content": {
+			"query": "USE bankaml_gold;\nGO\n\nCREATE EXTERNAL TABLE structuring_flags\n(\n    account_id VARCHAR(20),\t\n    customer_id\tVARCHAR(20), \n    flag_type VARCHAR(20), \n    deposit_count INT, \n    near_threshold_count INT, \n    related_txn_ids\tVARCHAR(500), \n    window_start DATETIME, \n    window_end DATETIME, \n    severity VARCHAR(20), \n    flagged_ts DATETIME, \n    status VARCHAR(20),\n    flag_id\tVARCHAR(200)\n)\nWITH (\n    LOCATION = '__unitystorage/schemas/8946e759-3454-4f7d-ae7a-889f79f09120/tables/13d80c5c-7156-42ec-ac9d-6f3fe42940d5',\n    DATA_SOURCE = BankAMLGOLD,\n    FILE_FORMAT = DeltaFormat\n);",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "bankaml_gold",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

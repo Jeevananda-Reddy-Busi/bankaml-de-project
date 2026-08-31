@@ -1,0 +1,20 @@
+{
+	"name": "external_file_format",
+	"properties": {
+		"folder": {
+			"name": "01_external_tables_gold"
+		},
+		"content": {
+			"query": "USE bankaml_gold;\nGO\n\nCREATE EXTERNAL FILE FORMAT DeltaFormat\nWITH \n(\n    FORMAT_TYPE = DELTA\n);",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "bankaml_gold",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

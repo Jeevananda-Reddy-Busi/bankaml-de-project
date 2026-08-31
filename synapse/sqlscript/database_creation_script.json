@@ -1,0 +1,20 @@
+{
+	"name": "database_creation_script",
+	"properties": {
+		"folder": {
+			"name": "01_external_tables_gold"
+		},
+		"content": {
+			"query": "CREATE DATABASE bankaml_gold;",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "master",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}
