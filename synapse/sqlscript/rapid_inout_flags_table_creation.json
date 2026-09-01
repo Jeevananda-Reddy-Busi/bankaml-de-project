@@ -1,0 +1,20 @@
+{
+	"name": "rapid_inout_flags_table_creation",
+	"properties": {
+		"folder": {
+			"name": "01_external_tables_gold"
+		},
+		"content": {
+			"query": "USE bankaml_gold;\nGO\n\nCREATE EXTERNAL TABLE rapid_inout_flags\n(\n    account_id VARCHAR(20),\t\n    customer_id\tVARCHAR(20), \n    inflow_txn_id VARCHAR(20), \n    outflow_txn_id VARCHAR(20),\n    inflow_amount_usd DECIMAL(18,2),\n    outflow_amount_usd DECIMAL(18,2),\n    time_gap_hours DECIMAL(10,2),\n    flag_type VARCHAR(20),\n    severity VARCHAR(20),\n    flagged_ts DATETIME,\n    flag_id VARCHAR(100)\n)\nWITH (\n    LOCATION = '__unitystorage/schemas/8946e759-3454-4f7d-ae7a-889f79f09120/tables/fbbeef28-96de-42a2-81e3-76dede14db39',\n    DATA_SOURCE = BankAMLGOLD,\n    FILE_FORMAT = DeltaFormat\n);",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "bankaml_gold",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}
