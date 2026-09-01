@@ -1,0 +1,20 @@
+{
+	"name": "customer_risk_summary_table_creation",
+	"properties": {
+		"folder": {
+			"name": "01_external_tables_gold"
+		},
+		"content": {
+			"query": "USE bankaml_gold;\nGO\n\nCREATE EXTERNAL TABLE customer_risk_summary\n(\n    customer_id\tVARCHAR(20), \n    stated_risk_rating VARCHAR(20), \n    customer_account_count INT, \n    customer_total_txn_volume_usd DECIMAL(18,2),\n    customer_txn_count INT, \n    customer_flag_count INT,\n    behavioral_risk_score VARCHAR(20),\n    priority_review_flag VARCHAR(20)\n)\nWITH (\n    LOCATION = '__unitystorage/schemas/8946e759-3454-4f7d-ae7a-889f79f09120/tables/0a77d265-3b51-46bb-ba69-d5e9ca596275',\n    DATA_SOURCE = BankAMLGOLD,\n    FILE_FORMAT = DeltaFormat\n);",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "bankaml_gold",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}

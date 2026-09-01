@@ -1,0 +1,20 @@
+{
+	"name": "account_daily_txn_summary_table_creation",
+	"properties": {
+		"folder": {
+			"name": "01_external_tables_gold"
+		},
+		"content": {
+			"query": "USE bankaml_gold;\nGO\n\nCREATE EXTERNAL TABLE account_daily_txn_summary\n(\n    account_id VARCHAR(20), \n    customer_id VARCHAR(20), \n    branch_id VARCHAR(20), \n    txn_date DATE,\n    txn_count INT,\n    total_deposit_usd DECIMAL(18,2),\n    total_withdrawal_usd DECIMAL(18,2),\n    net_flow_usd DECIMAL(18,2),\n    status_activity_mismatch VARCHAR(20),\n    composite_key VARCHAR(30)\n)\nWITH (\n    LOCATION = '__unitystorage/schemas/8946e759-3454-4f7d-ae7a-889f79f09120/tables/f50fcc97-75c7-45d3-a0e3-798da9c1f18d',\n    DATA_SOURCE = BankAMLGOLD,\n    FILE_FORMAT = DeltaFormat\n);\n\t\t\t\t\t\t\t\t\t",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "master",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}
